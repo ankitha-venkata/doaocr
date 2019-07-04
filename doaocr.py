@@ -80,8 +80,16 @@ class GeneralForm():
     def __repr__(self):
         """returns the pretty formatted version of the image data contents""" 
         optemp2=self.component_contents_dict
-        df=pd.DataFrame(optemp2, index=['0']) 
-        df.to_csv('new_csv_file.csv',mode='a',header=False,newline='')
+        #df1=pd.read_csv('new_csv_file.csv')
+        df2=pd.DataFrame(optemp2, index=['a']) 
+        try:
+            f=open('new_csv_file.csv')
+            f.close()
+            df2.to_csv('new_csv_file.csv',mode='a',index=False, header=False)
+        except IOError:
+            df2.to_csv('new_csv_file.csv',mode='a',index=False, header=True)
+        #df1.append(df2,ignore_index=True)
+        #df1.to_csv('newer_csv_file.csv')
         return pprint.pformat(self.component_contents_dict)
 
 
