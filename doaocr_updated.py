@@ -9,34 +9,27 @@ import pandas as pd
 
 
 class GeneralForm():
-    """Peforms OCR on the form"""
     def __init__(self, image_path):
         self.image_path         = image_path
         self.bounding_box_dict  =   {
-            #format of pixel dimensions: ( x_min, y_min, x_max, y_max )
+            #format of pixel dimensions to specify the field box boundaries: ( x_min, y_min, x_max, y_max ) 
+            #http://nicodjimenez.github.io/boxLabel/annotate.html
             "Date"   :                                  (708,131,1084,200),
-            "Checkbox_Purchase_of_traps":               (193,369,203,378),
-            "Checkbox_Purchase_of_weedicide":           (192,402,204,413),
-            "Checkbox_Construction_of_biogas":          (193,436,204,447),
-            "Checkbox_Construction_of_compost":         (192,470,204,480),
-            "Checkbox_Purchase_of_micronutrients":      (192,502,204,514),
-            "Checkbox_Organic_input_assistance":        (193,537,204,547),
-            "Checkbox_Mechanized_paddy_transplanting":  (192,570,205,581),
-            "Name"     :                                (155,711,1090,786),
-            "Krishicard":                               (562,873,1085,943),
-            "Survey"    :                               (708,1020,1084,1086),
+            "Purpose"   :                               (939,534,1091,632),
+            "Name"     :                                (170,703,1106,784),
+            "Krishicard":                               (562,870,1100,942),
+            "Survey"    :                               (708,1017,1099,1085),
             "Area"      :                               (707,1165,1083,1232),
-            "Village"   :                               (707,1335,1085,1403),
+            "Village"   :                               (707,1335,1096,1403)
             
         }
 
         self.component_contents_dict = dict(zip(self.bounding_box_dict.keys(), len(self.bounding_box_dict) * [""])) #someone add comment
 
     def reading_boundaries(self):
-        """runs each mask(crop) across the image file to improve OCR functionality"""
         image = Image.open(self.image_path)
         for form_field, bounding_box in self.bounding_box_dict.items():
-            # the crops are scaled up and the contrast maxed out in order to enhance character features and increase OCR success
+            # Contrast of the image is maxed out
             x1, y1, x2, y2  = bounding_box
             xx              = (x2-x1) << 2 #Bitwise left shift
             yy              = (y2-y1) << 2 
@@ -52,7 +45,7 @@ class GeneralForm():
             if "Checkbox" in form_field:
                 #checks if the box has been filled by checking if more than 50% of its area has been filled
                 filled_area=np.sum(bw)/256
-                check=filled_area<=(0.5*area)
+                check=filled_area<=(0.1*area)
                 self.component_contents_dict[form_field]=check
             else:
                 self.component_contents_dict[form_field] = self.cleanup(pytesseract.image_to_string(the_crop))
@@ -70,7 +63,6 @@ class GeneralForm():
     def __repr__(self):
         #returns the well formatted version of the data
         output=self.component_contents_dict
-        #df1=pd.read_csv('new_csv_file.csv')
         df=pd.DataFrame(output, index=['a']) 
         #adds header only if a new file is being created
         try:
@@ -87,7 +79,7 @@ class GeneralForm():
         from scipy import ndimage, misc
         import numpy as np
         from skimage import feature
-        original_img = Image.open("newtrial1.jpg")
+        original_img = Image.open("newtrial_wobox_pg1.jpg")
         gray = original_img.convert('L')
 
         # Converts pixels to pure black or white
@@ -104,16 +96,16 @@ class GeneralForm():
         labels, numobjects =ndimage.label(im)
         slices = ndimage.find_objects(labels)
         print('\n'.join(map(str, slices)))
-        misc.imsave('newtrialneg.jpg', im)
+        misc.imsave('newtrial_wobox_neg.jpg', im)
         return
 
         sobel_x = ndimage.sobel(im, axis=0, mode='constant') #detected edges using sobel method
         sobel_y = ndimage.sobel(im, axis=1, mode='constant')
         sobel= np.hypot(sobel_x, sobel_y)
-        misc.imsave('newtrialneg.jpg', edges_canny)
+        misc.imsave('newtrial_wobox_neg.jpg', edges_canny)
 
 if __name__ == "__main__":
-    read = GeneralForm('newtrialhand4.jpg')
+    read = GeneralForm('scan0012.jpg')
     read.reading_boundaries()
     print(read)
     print(type(read))
