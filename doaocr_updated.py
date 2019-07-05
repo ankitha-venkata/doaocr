@@ -105,7 +105,6 @@ class GeneralForm():
         misc.imsave('newtrial_wobox_neg.jpg', edges_canny)
 
 if __name__ == "__main__":
-    read = GeneralForm('scan0012.jpg')
-    read.reading_boundaries()
-    print(read)
-    print(type(read))
+    filledForm = GeneralForm('scan0012.jpg')
+    filledForm.reading_boundaries()
+    print(filledForm)
